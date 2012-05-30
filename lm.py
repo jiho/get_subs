@@ -25,7 +25,7 @@ import os
 import re
 import sys
 import time
-import imdb
+# import imdb
 import zlib
 import struct
 import base64
@@ -391,7 +391,7 @@ class ListMovies():
         self.load_cache_path()
         self.load_cache_hash()
 
-        self.i = imdb.IMDb()
+        # self.i = imdb.IMDb()
 
         # opensubtitles XMLRPC server and tokern
         self.server = None
@@ -775,53 +775,57 @@ class ListMovies():
         cache_hash = self.cache_hash
         imdb_id    = None
 
-        try:
+        # try:
 
-            # if we have an imdb_id from opensubtitles for this hash
-            imdb_id = cache_hash[cur_hash]['o_imdb_id']
+        # if we have an imdb_id from opensubtitles for this hash
+        imdb_id = cache_hash[cur_hash]['o_imdb_id']
 
-            if imdb_id:
-                self.log.info("IMDb id stored from Opensubtites %s" % imdb_id)
-                result = self.i.get_movie(imdb_id)
-                if result:
-                    self.__fill_metadata( cur_hash, result )
-                else:
-                    self.log.warning("failed to get movie info from IMDB")
+        if imdb_id:
+            self.log.info("IMDb id stored from Opensubtites %s" % imdb_id)
+            # result = self.i.get_movie(imdb_id)
+            # if result:
+            #     self.__fill_metadata( cur_hash, result )
+            # else:
+            #     self.log.warning("failed to get movie info from IMDB")
 
-            else:
-                # we need to guess a title, from a file pointing to this hash
-                self.log.info("no IMDb id stored from OpenSubtitles")
+        else:
+            # we need to guess a title, from a file pointing to this hash
+            self.log.info("no IMDb id stored from OpenSubtitles")
 
-                path  = self.path_from_hash( cur_hash )['path']
-                guess = self.guessed_title_year( path )
-                self.log.debug("info guessed from filaneme %s" % str(guess) )
+            path  = self.path_from_hash( cur_hash )['path']
+            guess = self.guessed_title_year( path )
+            self.log.debug("info guessed from filaneme %s" % str(guess) )
 
-                cache_hash[cur_hash].update( guess )
+            cache_hash[cur_hash].update( guess )
 
-                results = self.i.search_movie( guess['g_title'] )
+            # results = self.i.search_movie( guess['g_title'] )
+            #
+            # if results:
+            #     self.log.info("finding best match in answers")
+            #     best_result, unsure = self.best_match( guess['g_title'],
+            #             guess['g_year'], results)
+            #
+            #     self.log.debug("best result for %s: %s" % \
+            #             (guess['g_title'], best_result.get('title')))
+            #
+            #     cache_hash[cur_hash]['g_unsure'] = unsure
+            #     self.i.update(best_result)
+            #     self.__fill_metadata( cur_hash, best_result)
+            # else:
+            #     self.log.info("no result from IMDb, empty metadata")
+            #     self.__fill_metadata( cur_hash, None )
+            #     cache_hash[cur_hash]['g_unsure'] = True
+            cache_hash[cur_hash]['g_unsure'] = True
 
-                if results:
-                    self.log.info("finding best match in answers")
-                    best_result, unsure = self.best_match( guess['g_title'],
-                            guess['g_year'], results)
+        self.__fill_metadata( cur_hash, None )
 
-                    self.log.debug("best result for %s: %s" % \
-                            (guess['g_title'], best_result.get('title')))
 
-                    cache_hash[cur_hash]['g_unsure'] = unsure
-                    self.i.update(best_result)
-                    self.__fill_metadata( cur_hash, best_result)
-                else:
-                    self.log.info("no result from IMDb, empty metadata")
-                    self.__fill_metadata( cur_hash, None )
-                    cache_hash[cur_hash]['g_unsure'] = True
-
-        except imdb.IMDbError, e:
-            print( "Connection error, current movie: [%s]" % \
-                    imdb_id if imdb_id else guess['g_title'] )
-            print e
-            self.save_cache()
-            sys.exit(2)
+        # except imdb.IMDbError, e:
+        #     print( "Connection error, current movie: [%s]" % \
+        #             imdb_id if imdb_id else guess['g_title'] )
+        #     print e
+        #     self.save_cache()
+        #     sys.exit(2)
 
 
     # ********** UNKNOW HASH MATCHER *****************************************
@@ -1111,7 +1115,7 @@ class ListMovies():
         for f in files:
 
             # check if we already downloaded subtitles for this movie
-            pattern = lang.upper() + "_LM[\d]{1,}\.srt$"
+            pattern = lang.lower() + "[\d]{1,}\.srt$"
             filedir = os.path.dirname(f)
             old_subs = [ old for old in filelist(filedir,False) \
                     if re.search(pattern, old) ]
@@ -1191,7 +1195,7 @@ class ListMovies():
 
     def download_subtitles_write(self,ref,subs,lang):
     # Write downloaded subtitles in movies directories with suffixe:
-    # _LANG_LM[\d].srt
+    # _LANG[\d].srt
     # @param red: output of download_subititles_query
     # @param subs: list of decompressed subs [{'IDSubtitleFile':,'Data'}]
 
@@ -1199,8 +1203,8 @@ class ListMovies():
             keep = v['keep']
             if keep:
                 for i in range(len(keep)):
-                    sub_file = os.path.splitext(k)[0] + '_' + lang.upper() + \
-                            '_LM' + str(i+1) + '.srt'
+                    sub_file = os.path.splitext(k)[0] + '.' + lang.lower() + \
+                            '.' + str(i+1) + '.srt'
                     f = codecs.open(sub_file,'wb')
                     f.write(subs[keep[i]])
                     f.close()
@@ -1507,19 +1511,19 @@ if __name__ == "__main__":
     if options.confirm:
         LM.manual_confirm(files)
 
-    elif options.upload:
-        LM.upload_to_opensubtitles(files)
+    # elif options.upload:
+    #     LM.upload_to_opensubtitles(files)
 
     elif options.download:
         LM.download_subtitle(files, options.download)
 
-    elif options.show or options.html_build:
-        LM.html_build(files)
-        if options.show:
-            LM.html_show()
-
-    elif options.show_imdb:
-        LM.imdb_show(files)
+    # elif options.show or options.html_build:
+    #     LM.html_build(files)
+    #     if options.show:
+    #         LM.html_show()
+    #
+    # elif options.show_imdb:
+    #     LM.imdb_show(files)
 
     else:
         LM.show_list( files )
