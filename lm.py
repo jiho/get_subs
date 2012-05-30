@@ -1158,7 +1158,7 @@ class ListMovies():
                 keep.sort( key=lambda k: k['SubDownloadsCnt'],
                             reverse = True )
 
-                v['keep'] = [ k['IDSubtitleFile'] for k in keep[0:3]]
+                v['keep'] = [ k['IDSubtitleFile'] for k in keep[0:2]]
 
             else:
                 v['keep'] = None
