@@ -1203,8 +1203,16 @@ class ListMovies():
             keep = v['keep']
             if keep:
                 for i in range(len(keep)):
-                    sub_file = os.path.splitext(k)[0] + '.' + lang.lower() + \
-                            '.' + str(i+1) + '.srt'
+                    if lang.lower() == 'fre':
+                        lng = ''
+                    else:
+                        lng = '.' + lang.lower()
+                    if i == 1:
+                        nb = ''
+                    else:
+                        nb = '.' + str(i+1)
+                    sub_file = os.path.splitext(k)[0] + lng + \
+                        nb + '.srt'
                     f = codecs.open(sub_file,'wb')
                     f.write(subs[keep[i]])
                     f.close()
